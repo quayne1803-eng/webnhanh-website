@@ -144,7 +144,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/mcp', async (req, res) => {
+app.post(['/mcp', '/biz-mcp'], async (req, res) => {
   try {
     const server = buildServer();
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
@@ -156,8 +156,8 @@ app.post('/mcp', async (req, res) => {
     if (!res.headersSent) res.status(500).json({ jsonrpc: '2.0', error: { code: -32603, message: String(e.message || e) }, id: null });
   }
 });
-app.get('/mcp', (req, res) => res.status(405).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed (dùng POST)' }, id: null }));
-app.get('/health', (req, res) => {
+app.get(['/mcp', '/biz-mcp'], (req, res) => res.status(405).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed (dùng POST)' }, id: null }));
+app.get(['/health', '/biz-mcp/health'], (req, res) => {
   const c = (t) => db.prepare('SELECT COUNT(*) c FROM ' + t).get().c;
   res.json({ ok: true, service: 'webnhanh-mcp', db: DB_PATH, products: c('products'), customers: c('customers'), orders: c('orders') });
 });

@@ -6,12 +6,14 @@
   "scripts": {
     "start": "node server.js",
     "export-data": "node scripts/export-from-vercel.js",
-    "import-sql": "node scripts/import-json.js"
+    "import-sql": "node scripts/import-json.js",
+    "mcp": "node mcp/server.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "@modelcontextprotocol/sdk": "^1.20.0"
   },
   "engines": {
     "node": ">=20"

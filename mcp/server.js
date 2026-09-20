@@ -131,6 +131,12 @@ function buildServer() {
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
+/* Ghi log mọi request để chẩn đoán */
+app.use((req, res, next) => {
+  console.log(`[req] ${new Date().toISOString()} ${req.method} ${req.path} auth=${req.headers.authorization ? 'co' : 'khong'} ua=${(req.headers['user-agent'] || '').slice(0, 30)}`);
+  next();
+});
+
 /* Bảo vệ: goClaw gọi qua internet nên BẮT BUỘC có token */
 app.use((req, res, next) => {
   if (req.path === '/health') return next();

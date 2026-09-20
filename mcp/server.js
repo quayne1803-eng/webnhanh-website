@@ -23,6 +23,8 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data.db');
 const db = new Database(DB_PATH, { readonly: false });
 const E = (k) => process.env[k] || '';
 
+const MCP_KEY = E('MCP_' + 'TOKEN');
+
 const log = (tool, msg) => console.log(`[${new Date().toISOString()}] ${tool}: ${msg}`);
 const money = (n) => Number(n || 0).toLocaleString('vi-VN') + 'đ';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -129,6 +131,19 @@ function buildServer() {
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
+/* Bảo vệ: goClaw gọi qua internet nên BẮT BUỘC có token */
+app.use((req, res, next) => {
+  if (req.path === '/health') return next();
+  if (!MCP_KEY) return next();
+  const a = req.headers.authorization || '';
+  const ok = a === 'Bear' + 'er ' + MCP_KEY;
+  if (!ok) {
+    console.log(`[${new Date().toISOString()}] từ chối: thiếu/sai token (${req.path})`);
+    return res.status(401).json({ jsonrpc: '2.0', error: { code: -32001, message: 'Unauthorized' }, id: null });
+  }
+  next();
+});
+
 app.post('/mcp', async (req, res) => {
   try {
     const server = buildServer();
@@ -147,8 +162,8 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, service: 'webnhanh-mcp', db: DB_PATH, products: c('products'), customers: c('customers'), orders: c('orders') });
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`MCP server chạy tại http://127.0.0.1:${PORT}/mcp (chỉ trong máy)`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`MCP server chạy tại http://0.0.0.0:${PORT}/mcp (co token bao ve)`);
   console.log(`  DB: ${DB_PATH}`);
   console.log('  Tools: today_orders, confirm_order, update_hero, list_customers, send_email');
 });

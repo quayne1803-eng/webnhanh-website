@@ -141,8 +141,11 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   if (req.path === '/health') return next();
   if (!MCP_KEY) return next();
+  /* goClaw chay trong Docker tren cung may -> request noi bo duoc tin cay */
+  const ip = (req.socket && req.socket.remoteAddress) || '';
+  const noiBo = /^(::ffff:)?(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(ip) || ip === '::1';
   const a = req.headers.authorization || '';
-  const ok = a === 'Bear' + 'er ' + MCP_KEY;
+  const ok = noiBo || a === 'Bear' + 'er ' + MCP_KEY;
   if (!ok) {
     console.log(`[${new Date().toISOString()}] từ chối: thiếu/sai token (${req.path})`);
     return res.status(401).json({ jsonrpc: '2.0', error: { code: -32001, message: 'Unauthorized' }, id: null });

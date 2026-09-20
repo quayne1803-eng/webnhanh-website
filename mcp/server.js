@@ -25,6 +25,21 @@ const E = (k) => process.env[k] || '';
 
 const MCP_KEY = E('MCP_' + 'TOKEN');
 
+
+/* --- migration: cot "notified" de khong nhan trung (co che da_nhan) --- */
+function themCot(table, cot) {
+  try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${cot} INTEGER DEFAULT 0`); console.log(`[migrate] them cot ${table}.${cot}`); }
+  catch (e) { /* da co -> bo qua */ }
+}
+themCot('orders', 'notified');
+themCot('customers', 'notified');
+/* danh dau cac ban ghi CU la da thong bao (khong nhan bu) */
+try {
+  const n1 = db.prepare('UPDATE orders SET notified = 1 WHERE notified IS NULL').run().changes;
+  const n2 = db.prepare('UPDATE customers SET notified = 1 WHERE notified IS NULL').run().changes;
+  if (n1 || n2) console.log(`[migrate] danh dau ban ghi cu: ${n1} don, ${n2} khach`);
+} catch (e) { /* bo qua */ }
+
 const log = (tool, msg) => console.log(`[${new Date().toISOString()}] ${tool}: ${msg}`);
 const money = (n) => Number(n || 0).toLocaleString('vi-VN') + 'đ';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -122,6 +137,53 @@ function buildServer() {
     const r = await sendEmail(c.email, subject, body);
     log('send_email', `${c.name} <${c.email}> : ${r.ok ? 'OK' : r.error}`);
     return { content: [{ type: 'text', text: r.ok ? `Đã gửi email "${subject}" tới ${c.name} (${c.email}).` : `Gửi email lỗi: ${r.error}` }] };
+  });
+
+  /* ---------- Tín hiệu chủ động (Ngày 15) ---------- */
+
+  s.registerTool('get_new_orders', {
+    title: 'Đơn mới chưa thông báo',
+    description: 'Trả về các đơn hàng mới đặt mà chưa từng thông báo cho chủ. Sau khi trả, tự đánh dấu là đã thông báo để không nhắn trùng. Nếu không có đơn mới, trả về chuỗi rỗng.',
+    inputSchema: {}
+  }, async () => {
+    const rows = db.prepare('SELECT o.*, c.name AS ten_khach, c.phone, p.name AS ten_sp FROM orders o LEFT JOIN customers c ON c.id = o.customer_id LEFT JOIN products p ON p.id = o.product_id WHERE IFNULL(o.notified,0) = 0 ORDER BY o.id').all();
+    if (!rows.length) { log('get_new_orders', 'khong co don moi'); return { content: [{ type: 'text', text: '' }] }; }
+    for (const r of rows) db.prepare('UPDATE orders SET notified = 1 WHERE id = ?').run(r.id);
+    const homNay = db.prepare("SELECT COUNT(*) c, IFNULL(SUM(amount),0) s FROM orders WHERE date(created_at) = date('now')").get();
+    const text = rows.map((o) => `Đơn mới: ${o.code} — ${o.ten_khach || 'khách'}${o.phone ? ' (' + o.phone + ')' : ''} — ${money(o.amount)} — ${o.ten_sp || ''}`).join('\n')
+      + `\nTổng hôm nay: ${homNay.c} đơn, ${money(homNay.s)}.`;
+    log('get_new_orders', `${rows.length} đơn mới`);
+    return { content: [{ type: 'text', text }] };
+  });
+
+  s.registerTool('get_new_leads', {
+    title: 'Khách mới để lại thông tin chưa thông báo',
+    description: 'Trả về các khách vừa điền form mà chưa từng thông báo. Tự đánh dấu đã thông báo để không nhắn trùng. Không có thì trả chuỗi rỗng.',
+    inputSchema: {}
+  }, async () => {
+    const rows = db.prepare('SELECT * FROM customers WHERE IFNULL(notified,0) = 0 ORDER BY id').all();
+    if (!rows.length) { log('get_new_leads', 'khong co lead moi'); return { content: [{ type: 'text', text: '' }] }; }
+    for (const r of rows) db.prepare('UPDATE customers SET notified = 1 WHERE id = ?').run(r.id);
+    const homNay = db.prepare("SELECT COUNT(*) c FROM customers WHERE date(created_at) = date('now')").get();
+    const text = rows.map((c) => `Khách mới: ${c.name} — ${c.phone || 'chưa có SĐT'}${c.note ? ' — ' + c.note : ''}`).join('\n')
+      + `\nKhách hôm nay: ${homNay.c}.`;
+    log('get_new_leads', `${rows.length} lead mới`);
+    return { content: [{ type: 'text', text }] };
+  });
+
+  s.registerTool('daily_summary', {
+    title: 'Tổng kết 24 giờ qua',
+    description: 'Tổng kết đơn hàng và khách mới trong 24 giờ qua, dùng cho tin nhắn báo sáng mỗi ngày.',
+    inputSchema: {}
+  }, async () => {
+    const o = db.prepare("SELECT COUNT(*) c, IFNULL(SUM(amount),0) s FROM orders WHERE created_at >= datetime('now','-1 day')").get();
+    const ok = db.prepare("SELECT COUNT(*) c, IFNULL(SUM(amount),0) s FROM orders WHERE created_at >= datetime('now','-1 day') AND status='success'").get();
+    const c = db.prepare("SELECT COUNT(*) c FROM customers WHERE created_at >= datetime('now','-1 day')").get();
+    const cho = db.prepare("SELECT COUNT(*) c FROM orders WHERE status='pending'").get();
+    const text = `24 giờ qua: ${o.c} đơn mới (${money(o.s)}), trong đó ${ok.c} đơn đã thanh toán (${money(ok.s)}). `
+      + `${c.c} khách mới để lại thông tin. Hiện có ${cho.c} đơn đang chờ xử lý.`;
+    log('daily_summary', text);
+    return { content: [{ type: 'text', text }] };
   });
 
   return s;

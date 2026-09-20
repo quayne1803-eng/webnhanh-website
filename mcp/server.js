@@ -47,7 +47,7 @@ function buildServer() {
   s.registerTool('today_orders', {
     title: 'Báo cáo đơn hôm nay',
     description: 'Cho biết hôm nay có bao nhiêu đơn, tổng tiền, bao nhiêu đơn đã thanh toán.',
-    inputSchema: { type: 'object', properties: {} }
+    inputSchema: {}
   }, async () => {
     const rows = db.prepare('SELECT * FROM orders WHERE date(created_at) = date(?)').all(today());
     const ok = rows.filter((o) => o.status === 'success');

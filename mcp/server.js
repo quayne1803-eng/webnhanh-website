@@ -64,11 +64,7 @@ function buildServer() {
   s.registerTool('confirm_order', {
     title: 'Xác nhận đã thanh toán',
     description: 'Xác nhận một đơn đã nhận tiền (đơn chuyển sang trạng thái đã thanh toán). Dùng khi khách chuyển khoản mà nội dung không khớp mã đơn.',
-    inputSchema: {
-      type: 'object',
-      properties: { code: { type: 'string', description: 'Mã đơn, ví dụ WN123456' } },
-      required: ['code']
-    }
+    inputSchema: { code: { type: 'string', description: 'Mã đơn, ví dụ WN123456' } }
   }, async ({ code }) => {
     const o = db.prepare('SELECT * FROM orders WHERE code = ?').get(String(code || '').trim());
     if (!o) { log('confirm_order', 'không thấy đơn ' + code); return { content: [{ type: 'text', text: `Không tìm thấy đơn ${code}.` }] }; }
@@ -81,11 +77,7 @@ function buildServer() {
   s.registerTool('update_hero', {
     title: 'Đổi tiêu đề trang chủ',
     description: 'Đổi dòng tiêu đề lớn (h1) trên trang chủ website.',
-    inputSchema: {
-      type: 'object',
-      properties: { text: { type: 'string', description: 'Nội dung tiêu đề mới' } },
-      required: ['text']
-    }
+    inputSchema: { text: { type: 'string', description: 'Nội dung tiêu đề mới' } }
   }, async ({ text }) => {
     const file = path.join(__dirname, '..', 'public', 'index.html');
     const html = fs.readFileSync(file, 'utf8');
@@ -101,10 +93,7 @@ function buildServer() {
   s.registerTool('list_customers', {
     title: 'Khách mới để lại thông tin',
     description: 'Liệt kê những khách vừa để lại thông tin (mặc định 5 người mới nhất).',
-    inputSchema: {
-      type: 'object',
-      properties: { limit: { type: 'number', description: 'Số lượng muốn xem, mặc định 5' } }
-    }
+    inputSchema: { limit: { type: 'number', description: 'Số lượng muốn xem, mặc định 5' } }
   }, async ({ limit }) => {
     const n = Math.min(Math.max(parseInt(limit || 5, 10), 1), 50);
     const rows = db.prepare('SELECT name, phone, email, created_at FROM customers ORDER BY id DESC LIMIT ?').all(n);
@@ -118,13 +107,9 @@ function buildServer() {
     title: 'Gửi email cho một khách',
     description: 'Gửi email cho một khách theo tên hoặc số điện thoại.',
     inputSchema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string', description: 'Tên hoặc số điện thoại của khách' },
-        subject: { type: 'string', description: 'Tiêu đề email' },
-        body: { type: 'string', description: 'Nội dung email (văn bản thường)' }
-      },
-      required: ['query', 'subject', 'body']
+      query: { type: 'string', description: 'Tên hoặc số điện thoại của khách' },
+      subject: { type: 'string', description: 'Tiêu đề email' },
+      body: { type: 'string', description: 'Nội dung email (văn bản thường)' }
     }
   }, async ({ query, subject, body }) => {
     const q = String(query || '').trim();

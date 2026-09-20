@@ -1,0 +1,210 @@
+/* ============================================================
+   Web Nhanh — style.css (trang portfolio giới thiệu dịch vụ)
+   Phong cách: sáng, hiện đại, đáng tin cậy. Nhấn màu chàm (indigo).
+   → Đổi tông màu tại :root bên dưới.
+   ============================================================ */
+
+/* ---------- Biến giao diện ---------- */
+:root {
+  --primary: #4f46e5;       /* chàm (indigo) */
+  --primary-dark: #4338ca;
+  --bg: #ffffff;
+  --alt: #f5f7fb;           /* nền section xen kẽ */
+  --text: #111827;
+  --muted: #6b7280;
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(17, 24, 39, .08);
+  --font: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+}
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+
+.container { width: min(1100px, 92%); margin: 0 auto; }
+.section { padding: 72px 0; }
+.section-alt { background: var(--alt); }
+.section-title { font-size: clamp(1.7rem, 3.5vw, 2.3rem); text-align: center; font-weight: 800; }
+.section-sub { text-align: center; color: var(--muted); margin: 10px auto 40px; max-width: 600px; }
+
+/* ---------- Nút ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px; border-radius: 999px;
+  font-weight: 600; font-size: .98rem; cursor: pointer; border: none;
+  font-family: var(--font);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 8px 20px rgba(79, 70, 229, .3); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-ghost { background: transparent; color: var(--text); border: 2px solid #d7dbe7; }
+.btn-lg { padding: 16px 32px; font-size: 1.05rem; }
+.btn-nav { padding: 9px 20px; font-size: .9rem; }
+.btn-zalo { background: #0068ff; color: #fff; box-shadow: 0 8px 20px rgba(0, 104, 255, .28); }
+.btn-fb { background: linear-gradient(45deg, #00b2ff, #006aff); color: #fff; box-shadow: 0 8px 20px rgba(0, 106, 255, .28); }
+.btn-call { background: #111827; color: #fff; box-shadow: 0 8px 20px rgba(17, 24, 39, .25); }
+.btn-ico { font-size: 1.1rem; }
+
+/* ---------- Điều hướng ---------- */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; transition: background .25s ease, box-shadow .25s ease; }
+.nav.scrolled { background: rgba(255, 255, 255, .95); box-shadow: 0 2px 16px rgba(17, 24, 39, .08); backdrop-filter: blur(8px); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+.nav-logo { font-weight: 800; font-size: 1.2rem; color: var(--primary); }
+.nav-toggle { display: block; background: none; border: none; font-size: 1.7rem; color: var(--text); cursor: pointer; line-height: 1; }
+
+.nav-links {
+  position: fixed; top: 58px; left: 0; right: 0;
+  background: #fff; flex-direction: column; gap: 16px; padding: 22px;
+  box-shadow: var(--shadow); transform: translateY(-150%); transition: transform .3s ease;
+  z-index: 49;
+}
+.nav-links.open { transform: translateY(0); }
+.nav-links a:not(.btn) { color: var(--text); font-weight: 500; }
+
+@media (min-width: 820px) {
+  .nav-toggle { display: none; }
+  .nav-links {
+    position: static; transform: none; background: none; box-shadow: none;
+    flex-direction: row; padding: 0; gap: 24px; margin-left: auto;
+  }
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  padding: 150px 0 80px;
+  text-align: center;
+  background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+}
+.hero-badge {
+  display: inline-block; background: #e0e7ff; color: var(--primary-dark);
+  font-size: .85rem; font-weight: 600; padding: 7px 16px;
+  border-radius: 999px; margin-bottom: 18px;
+}
+.hero h1 { font-size: clamp(1.9rem, 5vw, 3.1rem); font-weight: 800; line-height: 1.25; max-width: 760px; margin: 0 auto 18px; }
+.hero-intro { color: var(--muted); max-width: 640px; margin: 0 auto 30px; }
+.hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+.hero-trust { color: var(--muted); font-size: .92rem; }
+
+/* ---------- Thẻ website mẫu ---------- */
+.demos-grid { display: grid; gap: 22px; grid-template-columns: 1fr; }
+.demo-card {
+  background: #fff; border: 1px solid #e8ecf4; border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease;
+  display: flex; flex-direction: column;
+}
+.demo-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(17, 24, 39, .13); }
+.demo-thumb { aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+.demo-body { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.demo-tag { color: var(--primary); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .5px; }
+.demo-body h3 { font-size: 1.25rem; font-weight: 700; }
+.demo-body p { color: var(--muted); font-size: .94rem; flex: 1; }
+.demo-btn { align-self: flex-start; }
+@media (min-width: 720px) { .demos-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ---------- Bảng giá ---------- */
+.pricing-grid { display: grid; gap: 22px; grid-template-columns: 1fr; max-width: 860px; margin: 0 auto; }
+.price-card {
+  position: relative; background: #fff; border: 2px solid #e8ecf4;
+  border-radius: var(--radius); padding: 30px 26px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.price-card.featured { border-color: var(--primary); box-shadow: 0 16px 40px rgba(79, 70, 229, .14); }
+.price-flag {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  background: var(--primary); color: #fff; font-size: .78rem; font-weight: 700;
+  padding: 4px 14px; border-radius: 999px; white-space: nowrap;
+}
+.price-name { font-size: 1.1rem; font-weight: 700; }
+.price-amount { font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 800; color: var(--primary-dark); }
+.price-time { color: var(--muted); font-size: .9rem; margin-top: -10px; }
+.price-features { list-style: none; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.price-features li { padding-left: 26px; position: relative; font-size: .94rem; }
+.price-features li::before { content: "✅"; position: absolute; left: 0; top: 1px; font-size: .9rem; }
+.pricing-note { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 28px; }
+@media (min-width: 720px) { .pricing-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- Quy trình ---------- */
+.steps-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
+.step-card {
+  background: #fff; border: 1px solid #e8ecf4; border-radius: var(--radius);
+  padding: 24px 22px; text-align: center;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.step-num {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: #fff; font-weight: 800; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.step-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+.step-card p { color: var(--muted); font-size: .92rem; }
+@media (min-width: 720px) { .steps-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* ---------- Liên hệ ---------- */
+.contact-wrap { text-align: center; }
+.contact-actions { display: flex; flex-direction: column; gap: 14px; align-items: center; max-width: 420px; margin: 0 auto; }
+.contact-actions .btn { width: 100%; justify-content: center; }
+
+/* ---------- Footer ---------- */
+.footer { background: #111827; color: #e5e7eb; text-align: center; padding: 28px 0; }
+.footer-sub { opacity: .7; font-size: .9rem; margin-top: 4px; }
+
+/* ---------- Nút nổi Zalo / Messenger ---------- */
+.floating-buttons {
+  position: fixed; right: 16px; bottom: 18px; z-index: 60;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.float-btn {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; box-shadow: 0 6px 16px rgba(0, 0, 0, .22);
+  transition: transform .15s ease;
+}
+.float-btn:hover { transform: scale(1.08); }
+.zalo-btn { background: #0068ff; font-size: .76rem; letter-spacing: .2px; }
+.fb-btn { background: linear-gradient(45deg, #00b2ff, #006aff); }
+
+/* ---------- Form yêu cầu báo giá (portfolio) ---------- */
+.quote-form {
+  background: #fff; border: 2px solid var(--primary); border-radius: var(--radius);
+  padding: 24px 22px; max-width: 860px; margin: 0 auto 22px;
+  display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 12px 34px rgba(79, 70, 229, .12);
+  text-align: left;
+}
+.quote-form.flash { animation: quotePulse 1.2s ease; }
+@keyframes quotePulse {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, .45); }
+  100% { box-shadow: 0 0 0 18px rgba(79, 70, 229, 0); }
+}
+.quote-grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 720px) { .quote-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Hai nhóm trường: "Thông tin liên hệ" (3 cột) và "Vài câu hỏi nhanh" (2 cột) */
+.quote-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.quote-group + .quote-group { border-top: 1px solid #e8ecf4; padding-top: 18px; }
+.quote-group-title {
+  font-size: .8rem; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+  color: var(--primary); padding: 0; margin-bottom: 12px;
+}
+.quote-grid-2 { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 720px) {
+  .quote-grid.quote-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quote-grid.quote-grid-2 .quote-field-full { grid-column: 1 / -1; }
+}
+.quote-form label { min-width: 0; }
+.quote-form input, .quote-form select { width: 100%; min-width: 0; }
+.quote-form label { display: flex; flex-direction: column; gap: 6px; font-size: .9rem; font-weight: 600; }
+.quote-form input, .quote-form select {
+  font: inherit; padding: 12px 14px; border: 1.5px solid #d7dbe7;
+  border-radius: 10px; background: #f8f9ff; color: var(--text);
+}
+.quote-form input:focus, .quote-form select:focus { outline: none; border-color: var(--primary); }
+.quote-form button { align-self: center; }
+.contact-or { text-align: center; color: var(--muted); font-size: .9rem; margin: 4px 0 16px; }

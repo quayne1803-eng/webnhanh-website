@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ⚙️ Tiêu đề sẽ được js/main.js ghi đè theo config — sửa tên ở js/config.js -->
+  <title>The Morning Cafe</title>
+  <meta name="description" content="Website demo quán cà phê — mẫu website cho hộ kinh doanh nhỏ" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%95%3C/text%3E%3C/svg%3E" />
+  <!-- Fonts: Playfair Display (tiêu đề) + Be Vietnam Pro (thân bài), hỗ trợ tiếng Việt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/demo-cafe/css/style.css" />
+</head>
+<body>
+
+  <!-- ===== Thanh điều hướng ===== -->
+  <header class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#hero" class="nav-logo" id="nav-logo">The Morning Cafe</a>
+      <nav class="nav-links" id="nav-links">
+        <a href="#about">Giới thiệu</a>
+        <a href="#services">Thực đơn</a>
+        <a href="#gallery">Hình ảnh</a>
+        <a href="#contact">Liên hệ</a>
+        <a href="#contact" class="btn btn-primary btn-nav" id="nav-cta">Đặt bàn ngay</a>
+      </nav>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Mở menu">☰</button>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="hero">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+      <h1 id="business-name">The Morning Cafe</h1>
+      <p class="hero-tagline" id="business-tagline"></p>
+      <a href="#contact" class="btn btn-primary btn-lg" id="hero-cta">Đặt bàn ngay</a>
+    </div>
+  </section>
+
+  <!-- ===== Giới thiệu ===== -->
+  <section class="section" id="about">
+    <div class="container about-grid">
+      <div class="about-img-wrap">
+        <img id="about-img" alt="Không gian quán" />
+      </div>
+      <div>
+        <h2 class="section-title">Về chúng tôi</h2>
+        <p class="about-text" id="about-text"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Thực đơn ===== -->
+  <section class="section section-alt" id="services">
+    <div class="container">
+      <h2 class="section-title">Thực đơn nổi bật</h2>
+      <p class="section-sub">Hạt rang mỗi tuần, pha chế bởi barista giàu kinh nghiệm.</p>
+      <div class="services-grid" id="services-grid"><!-- render từ js/config.js --></div>
+    </div>
+  </section>
+
+  <!-- ===== Thư viện ảnh ===== -->
+  <section class="section" id="gallery">
+    <div class="container">
+      <h2 class="section-title">Không gian &amp; món ngon</h2>
+      <div class="gallery-grid" id="gallery-grid"><!-- render từ js/config.js --></div>
+    </div>
+  </section>
+
+  <!-- ===== Liên hệ ===== -->
+  <section class="section section-alt" id="contact">
+    <div class="container">
+      <h2 class="section-title">Liên hệ với chúng tôi</h2>
+      <div class="contact-grid">
+
+        <div class="contact-info">
+          <div class="info-item">
+            <span class="info-emoji">📍</span>
+            <span id="contact-address"></span>
+          </div>
+          <div class="info-item">
+            <span class="info-emoji">📞</span>
+            <a id="contact-phone-link" href="#"><span id="contact-phone"></span></a>
+          </div>
+          <div class="info-item">
+            <span class="info-emoji">🕒</span>
+            <ul id="hours-list"></ul>
+          </div>
+          <!-- Bản đồ Google Maps nhúng (địa chỉ lấy từ config.contact.mapQuery) -->
+          <div class="map-wrap">
+            <iframe id="map" title="Bản đồ đến quán" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+
+        <!-- Form liên hệ (demo: chỉ alert, chưa gửi backend) -->
+        <form id="contact-form" class="contact-form" novalidate>
+          <h3>Gửi lời nhắn cho quán</h3>
+          <label>Họ tên
+            <input name="name" type="text" placeholder="Nhập họ tên của bạn" />
+          </label>
+          <label>Số điện thoại
+            <input name="phone" type="tel" inputmode="tel" placeholder="Nhập số điện thoại" />
+          </label>
+          <label>Lời nhắn
+            <textarea name="message" rows="4" placeholder="Bạn muốn đặt bàn / hỏi giá?"></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary">Gửi ngay</button>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <p id="footer-name"></p>
+      <p class="footer-sub" id="footer-address"></p>
+    </div>
+  </footer>
+
+  <!-- ===== Nút liên hệ nổi góc màn hình (Zalo / Messenger) ===== -->
+  <div class="floating-buttons">
+    <a id="fb-btn" class="float-btn fb-btn" target="_blank" rel="noopener" aria-label="Chat qua Facebook Messenger">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" aria-hidden="true">
+        <path d="M12 2C6.48 2 2 6.28 2 11.7c0 3.04 1.46 5.75 3.74 7.52V22l3.42-1.88c.87.24 1.8.37 2.84.37 5.52 0 10-4.28 10-9.7S17.52 2 12 2zm1.06 13.06-2.56-2.73-5 2.73 5.5-5.83 2.62 2.73 4.93-2.73-5.49 5.83z"/>
+      </svg>
+    </a>
+    <a id="zalo-btn" class="float-btn zalo-btn" target="_blank" rel="noopener" aria-label="Chat qua Zalo">Zalo</a>
+  </div>
+
+  <!-- Thứ tự quan trọng: config trước, main sau -->
+  <script src="/demo-cafe/js/config.js"></script>
+  <script src="/demo-cafe/js/main.js"></script>
+</body>
+</html>

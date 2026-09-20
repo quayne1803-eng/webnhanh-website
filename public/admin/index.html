@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — Web Nhanh</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; background: #f5f7fb; color: #111827; padding: 24px; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: .9rem; margin-bottom: 18px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .tab { padding: 10px 18px; border-radius: 999px; border: 2px solid #e5e7eb; background: #fff; cursor: pointer; font-weight: 600; font-size: .92rem; font-family: inherit; }
+  .tab.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+  .panel { background: #fff; border: 1px solid #e8ecf4; border-radius: 16px; padding: 18px; display: none; }
+  .panel.active { display: block; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .bar h2 { font-size: 1.05rem; }
+  button.btn { background: #4f46e5; color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: .88rem; }
+  button.btn.gray { background: #6b7280; } button.btn.red { background: #dc2626; } button.btn.green { background: #16a34a; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { border-bottom: 1px solid #eef2ff; padding: 10px 8px; text-align: left; vertical-align: top; }
+  th { background: #f8f9ff; font-weight: 700; }
+  tr:hover td { background: #fafbff; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; }
+  .pill.pending { background: #fef3c7; color: #92400e; }
+  .pill.success { background: #dcfce7; color: #166534; }
+  .pill.cancelled { background: #fee2e2; color: #991b1b; }
+  .pill.physical { background: #e0e7ff; color: #3730a3; }
+  .pill.service { background: #dbeafe; color: #1e40af; }
+  .pill.digital { background: #f3e8ff; color: #6b21a8; }
+  .note { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 10px 12px; border-radius: 10px; font-size: .85rem; margin-bottom: 14px; }
+  .empty { color: #9ca3af; padding: 14px 4px; font-size: .9rem; }
+  .modal { position: fixed; inset: 0; background: rgba(17,24,39,.45); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .modal.open { display: flex; }
+  .modal .box { background: #fff; border-radius: 16px; padding: 20px; width: 480px; max-width: 100%; max-height: 90vh; overflow: auto; }
+  .modal h3 { margin-bottom: 12px; }
+  label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 600; margin-bottom: 10px; }
+  input, select, textarea { font: inherit; font-size: .9rem; padding: 9px 11px; border: 1.5px solid #d7dbe7; border-radius: 9px; background: #f8f9ff; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .err { color: #dc2626; font-size: .82rem; min-height: 16px; }
+
+  /* ===== Điện thoại / máy tính bảng nhỏ ===== */
+  @media (max-width: 760px) {
+    .wrap { padding: 14px 12px; }
+    .row2 { grid-template-columns: 1fr; }
+    .tabs { flex-wrap: wrap; gap: 6px; }
+    .bar { flex-wrap: wrap; gap: 8px; }
+    table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+    .modal .box { width: 94vw; max-width: 520px; padding: 16px; }
+    h1 { font-size: 1.35rem; }
+    .btn { padding: 9px 13px; font-size: .86rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Admin — Web Nhanh</h1>
+  <p class="sub">Quản lý sản phẩm · khách hàng · đơn hàng</p>
+  <div class="note" id="mode-note">Đang tải...</div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="products">Sản phẩm</button>
+    <button class="tab" data-tab="customers">Khách hàng</button>
+    <button class="tab" data-tab="orders">Đơn hàng</button>
+    <button class="btn gray" id="load-server" style="margin-left:auto">Đăng nhập lại</button>
+    <button class="btn gray" id="export">Xuất JSON</button>
+  </div>
+
+  <section class="panel active" id="panel-products">
+    <div class="bar"><h2>Danh sách sản phẩm / dịch vụ</h2><button class="btn" id="add-product">+ Thêm sản phẩm</button></div>
+    <table><thead><tr><th>Tên</th><th>Loại</th><th>Giá</th><th>Tồn kho</th><th>Mô tả</th><th></th></tr></thead><tbody id="tb-products"></tbody></table>
+    <p class="empty" id="empty-products" style="display:none">Chưa có sản phẩm nào.</p>
+  </section>
+
+  <section class="panel" id="panel-customers">
+    <div class="bar"><h2>Danh sách khách hàng</h2><button class="btn" id="add-customer">+ Thêm khách hàng</button></div>
+    <table><thead><tr><th>Tên</th><th>SĐT</th><th>Email</th><th>Email tự động</th><th>Zalo</th><th>Ghi chú</th><th>Ngày</th><th></th></tr></thead><tbody id="tb-customers"></tbody></table>
+    <p class="empty" id="empty-customers" style="display:none">Chưa có khách hàng nào.</p>
+  </section>
+
+  <section class="panel" id="panel-orders">
+    <div class="bar"><h2>Danh sách đơn hàng</h2><button class="btn" id="add-order">+ Thêm đơn hàng</button></div>
+    <table><thead><tr><th>Mã</th><th>Khách</th><th>Sản phẩm</th><th>Số tiền</th><th>Trạng thái</th><th>Ngày</th><th></th></tr></thead><tbody id="tb-orders"></tbody></table>
+    <p class="empty" id="empty-orders" style="display:none">Chưa có đơn hàng nào.</p>
+  </section>
+</div>
+
+<div class="modal" id="modal"><div class="box">
+  <h3 id="modal-title">Thêm mới</h3>
+  <div id="modal-body"></div>
+  <div class="err" id="modal-err"></div>
+  <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
+    <button class="btn gray" id="modal-cancel">Huỷ</button>
+    <button class="btn" id="modal-save">Lưu</button>
+  </div>
+</div></div>
+
+<script>
+(function () {
+  /* ====== DAN URL GOOGLE APPS SCRIPT VAO DAY (xem HUONG-DAN-GOOGLE-SHEET.md) ====== */
+  var REMOTE = '';   /* ví dụ: https://script.google.com/macros/s/AKfy.../exec */
+  var API_URL = REMOTE || '/api/orders';
+  var API = true;   /* LUÔN dùng máy chủ (dữ liệu dùng chung) — lỗi thì tự lùi về lưu tại máy */
+  var KEY = '***';
+  var ADMIN_STORE = 'wn_admin_key';
+  function adminKey() { return localStorage.getItem(ADMIN_STORE) || ''; }
+  function askAdminKey(force) {
+    var k = adminKey();
+    if (!k || force) {
+      k = window.prompt('Nhập mật khẩu quản trị (admin):') || '';
+      if (k) localStorage.setItem(ADMIN_STORE, k);
+    }
+    return k;
+  }
+  var data = { products: [], customers: [], orders: [] };
+  var editing = null;
+
+  function setNote(t) { document.getElementById('mode-note').innerHTML = t; }
+  function api(action, payload) {
+    return fetch(API_URL, { method: 'POST',
+      headers: { 'x-admin-key': adminKey() },
+      body: JSON.stringify(Object.assign({ action: action }, payload || {})) }).then(function (r) {
+        if (r.status === 401) { askAdminKey(true); }
+        return r.json();
+      });
+  }
+  function loadLocal() {
+    var ls = localStorage.getItem(KEY);
+    if (ls) { data = JSON.parse(ls); setNote('Chế độ <b>lưu trong trình duyệt</b> (máy chủ chưa bật): thêm/sửa/xoá vẫn chạy bình thường trên máy này.'); return Promise.resolve(); }
+    return fetch('/admin/data.json').then(function (r) { return r.json(); }).then(function (j) {
+      data = j; setNote('Chế độ <b>lưu trong trình duyệt</b> (máy chủ chưa bật): thêm/sửa/xoá vẫn chạy bình thường trên máy này.');
+    });
+  }
+
+  function fetchList(force) {
+    var k = askAdminKey(force);
+    return fetch(API_URL + '?action=list', { headers: { 'x-admin-key': k } }).then(function (r) {
+      if (r.status === 401 && !force) { return fetchList(true); }
+      return r.json();
+    });
+  }
+
+  function load() {
+    if (API) {
+      return fetchList(false).then(function (j) {
+        if (j && j.ok && Array.isArray(j.orders)) {
+          data = j;
+          setNote('Chế độ <b>máy chủ</b>: dữ liệu lưu trên máy chủ, mọi trình duyệt đều thấy chung. Đăng nhập bằng mật khẩu quản trị.');
+          return;
+        }
+        setNote('Không tải được dữ liệu: ' + ((j && j.error) || 'lỗi không xác định') + ' — bấm <b>Đăng nhập lại</b> nếu sai mật khẩu.');
+        data = { products: [], customers: [], orders: [] };
+      }).catch(function () { setNote('Không gọi được máy chủ dữ liệu.'); });
+    }
+    return loadLocal();
+  }
+  function refresh() { return load().then(renderAll); }
+  function saveLocal() { localStorage.setItem(KEY, JSON.stringify(data)); renderAll(); }
+  function nextId(list) { return list.reduce(function (m, x) { return Math.max(m, x.id || 0); }, 0) + 1; }
+  function today() { return new Date().toISOString().slice(0, 19); }
+  function money(n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function typeLabel(t) { return t === 'physical' ? 'Vật lý' : (t === 'digital' ? 'Sản phẩm số' : 'Dịch vụ'); }
+  function custName(id) { var c = data.customers.filter(function (x) { return x.id === id; })[0]; return c ? c.name : '(đã xoá)'; }
+  function prodName(id) { var p = data.products.filter(function (x) { return x.id === id; })[0]; return p ? p.name : '(đã xoá)'; }
+
+  function renderProducts() {
+    document.getElementById('tb-products').innerHTML = (data.products || []).map(function (p) {
+      return '<tr><td>' + esc(p.name) + '</td><td><span class="pill ' + p.type + '">' + typeLabel(p.type) + '</span></td>' +
+        '<td>' + money(p.price) + '</td><td>' + (p.stock == null ? '<span style="color:#6b7280">không áp dụng</span>' : p.stock) + '</td>' +
+        '<td>' + esc(p.description || '') + '</td><td style="white-space:nowrap"><button class="btn gray" data-edit-p="' + p.id + '">Sửa</button> ' +
+        '<button class="btn red" data-del-p="' + p.id + '">Xoá</button></td></tr>';
+    }).join('');
+    document.getElementById('empty-products').style.display = (data.products || []).length ? 'none' : 'block';
+  }
+  function renderCustomers() {
+    document.getElementById('tb-customers').innerHTML = (data.customers || []).map(function (c) {
+      var step = Number(c.email_step || 0);
+      var mailTxt = step >= 3 ? '<span style="color:#15803d">đã gửi 3/3</span>'
+                  : step >= 1 ? '<span style="color:#a16207">đã gửi ' + step + '/3</span>'
+                  : (c.email ? '<span style="color:#6b7280">chưa gửi</span>' : '<span style="color:#9ca3af">chưa có email</span>');
+      return '<tr><td>' + esc(c.name) + '</td><td>' + esc(c.phone || '') + '</td>' +
+        '<td>' + esc(c.email || '') + '</td><td>' + mailTxt + '</td>' +
+        '<td>' + esc(c.zalo || '') + '</td>' +
+        '<td>' + esc(c.note || '') + '</td><td>' + esc((c.created_at || '').slice(0, 10)) + '</td>' +
+        '<td style="white-space:nowrap"><button class="btn gray" data-edit-c="' + c.id + '">Sửa</button> ' +
+        '<button class="btn red" data-del-c="' + c.id + '">Xoá</button></td></tr>';
+    }).join('');
+    document.getElementById('empty-customers').style.display = (data.customers || []).length ? 'none' : 'block';
+  }
+  function renderOrders() {
+    document.getElementById('tb-orders').innerHTML = (data.orders || []).map(function (o) {
+      var act = o.status === 'pending' ? '<button class="btn green" data-paid="' + o.id + '">Xác nhận đã thanh toán</button>'
+                                       : '<span style="color:#6b7280; font-size:.8rem">đã xử lý</span>';
+      return '<tr><td>' + esc(o.code || ('#' + o.id)) + '</td><td>' + esc(custName(o.customer_id)) + '</td><td>' + esc(prodName(o.product_id)) + '</td>' +
+        '<td>' + money(o.amount) + '</td><td><span class="pill ' + o.status + '">' + o.status + '</span></td>' +
+        '<td>' + esc((o.created_at || '').slice(0, 16).replace('T', ' ')) + '</td>' +
+        '<td style="white-space:nowrap">' + act + ' <button class="btn red" data-del-o="' + o.id + '">Xoá</button></td></tr>';
+    }).join('');
+    document.getElementById('empty-orders').style.display = (data.orders || []).length ? 'none' : 'block';
+  }
+  function renderAll() { renderProducts(); renderCustomers(); renderOrders(); }
+
+  /* ---------- modal ---------- */
+  var modal = document.getElementById('modal');
+  function openModal(title, html, onSave) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = html;
+    document.getElementById('modal-err').textContent = '';
+    modal.classList.add('open');
+    document.getElementById('modal-save').onclick = function () {
+      var r = onSave();
+      if (r && r.error) { document.getElementById('modal-err').textContent = r.error; return; }
+      modal.classList.remove('open');
+      if (r && r.done) r.done(); else renderAll();
+    };
+  }
+  document.getElementById('modal-cancel').onclick = function () { modal.classList.remove('open'); };
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.onclick = function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById('panel-' + t.getAttribute('data-tab')).classList.add('active');
+    };
+  });
+
+  /* ---------- san pham ---------- */
+  function productForm(p) {
+    return '<label>Tên<input id="f-name" value="' + esc(p.name || '') + '" /></label>' +
+      '<div class="row2"><label>Loại<select id="f-type">' + ['service', 'digital', 'physical'].map(function (t) {
+        return '<option value="' + t + '"' + (p.type === t ? ' selected' : '') + '>' + typeLabel(t) + '</option>'; }).join('') +
+      '</select></label><label>Giá (đ)<input id="f-price" type="number" value="' + (p.price || 0) + '" /></label></div>' +
+      '<label>Tồn kho (chỉ sản phẩm vật lý)<input id="f-stock" type="number" value="' + (p.stock == null ? '' : p.stock) + '" /></label>' +
+      '<label>Mô tả<textarea id="f-desc" rows="3">' + esc(p.description || '') + '</textarea></label>';
+  }
+  function readProduct() {
+    var name = document.getElementById('f-name').value.trim();
+    var type = document.getElementById('f-type').value;
+    var price = parseInt(document.getElementById('f-price').value || '0', 10);
+    var stockRaw = document.getElementById('f-stock').value.trim();
+    var description = document.getElementById('f-desc').value.trim();
+    if (!name) return { error: 'Vui lòng nhập tên sản phẩm.' };
+    if (type === 'physical' && stockRaw === '') return { error: 'Sản phẩm vật lý phải có tồn kho.' };
+    var prod = { id: editing.item.id, name: name, type: type, price: price, description: description,
+                 stock: type === 'physical' ? parseInt(stockRaw, 10) : null };
+    if (API) return { done: function () { api('upsert-product', { product: prod }).then(function (j) { if (!j.ok) alert(j.error); refresh(); }); } };
+    if (prod.id) { var old = data.products.filter(function (x) { return x.id === prod.id; })[0]; Object.assign(old, prod); }
+    else { prod.id = nextId(data.products); prod.created_at = today(); data.products.push(prod); }
+    return { done: saveLocal };
+  }
+  document.getElementById('add-product').onclick = function () { editing = { kind: 'p', item: {} }; openModal('Thêm sản phẩm', productForm({}), readProduct); };
+
+  /* ---------- khach hang ---------- */
+  function customerForm(c) {
+    return '<label>Tên<input id="c-name" value="' + esc(c.name || '') + '" /></label>' +
+      '<div class="row2"><label>Số điện thoại<input id="c-phone" value="' + esc(c.phone || '') + '" /></label>' +
+      '<label>Zalo<input id="c-zalo" value="' + esc(c.zalo || '') + '" /></label></div>' +
+      '<label>Email (để gửi email chăm sóc tự động)<input id="c-email" type="email" value="' + esc(c.email || '') + '" /></label>' +
+      '<label>Ghi chú<textarea id="c-note" rows="3">' + esc(c.note || '') + '</textarea></label>';
+  }
+  function readCustomer() {
+    var name = document.getElementById('c-name').value.trim();
+    var phone = document.getElementById('c-phone').value.trim().replace(/[\s.\-]/g, '');
+    var zalo = document.getElementById('c-zalo').value.trim();
+    var email = document.getElementById('c-email').value.trim();
+    var note = document.getElementById('c-note').value.trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { alert('Email chưa hợp lệ.'); return; }
+    if (!name) return { error: 'Vui lòng nhập tên khách.' };
+    if (phone && !/^0\d{8,10}$/.test(phone)) return { error: 'Số điện thoại chưa hợp lệ (VD: 0901234567).' };
+    var cust = { id: editing.item.id, name: name, phone: phone, email: email, zalo: zalo, note: note };
+    if (API) return { done: function () { api('upsert-customer', { customer: cust }).then(function (j) { if (!j.ok) alert(j.error); refresh(); }); } };
+    var dup = data.customers.filter(function (x) { return x.phone && x.phone === phone && x.id !== cust.id; });
+    if (phone && dup.length) return { error: 'Số điện thoại này đã có trong danh sách.' };
+    if (cust.id) { var old = data.customers.filter(function (x) { return x.id === cust.id; })[0]; Object.assign(old, cust); }
+    else { cust.id = nextId(data.customers); cust.created_at = today(); data.customers.push(cust); }
+    return { done: saveLocal };
+  }
+  document.getElementById('add-customer').onclick = function () { editing = { kind: 'c', item: {} }; openModal('Thêm khách hàng', customerForm({}), readCustomer); };
+
+  /* ---------- don hang ---------- */
+  function orderForm(o) {
+    return '<label>Khách hàng<select id="o-cust">' + data.customers.map(function (c) {
+      return '<option value="' + c.id + '"' + (o.customer_id === c.id ? ' selected' : '') + '>' + esc(c.name) + ' — ' + esc(c.phone || '') + '</option>'; }).join('') + '</select></label>' +
+      '<label>Sản phẩm<select id="o-prod">' + data.products.map(function (p) {
+        return '<option value="' + p.id + '"' + (o.product_id === p.id ? ' selected' : '') + '>' + esc(p.name) + ' — ' + money(p.price) + (p.type === 'physical' ? ' (tồn: ' + (p.stock == null ? 0 : p.stock) + ')' : ' (' + typeLabel(p.type) + ')') + '</option>'; }).join('') + '</select></label>' +
+      '<label>Số tiền (đ)<input id="o-amount" type="number" value="' + (o.amount || '') + '" /></label>' +
+      '<label>Trạng thái<select id="o-status">' + ['pending', 'success', 'cancelled'].map(function (s) {
+        return '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>';
+  }
+  function readOrder() {
+    var cid = parseInt(document.getElementById('o-cust').value, 10);
+    var pid = parseInt(document.getElementById('o-prod').value, 10);
+    var amount = parseInt(document.getElementById('o-amount').value || '0', 10);
+    var status = document.getElementById('o-status').value;
+    var prod = data.products.filter(function (x) { return x.id === pid; })[0];
+    if (!cid) return { error: 'Chưa có khách hàng nào để tạo đơn.' };
+    if (!prod) return { error: 'Chưa có sản phẩm nào để tạo đơn.' };
+    if (prod.type === 'physical' && status === 'success' && (prod.stock == null || prod.stock <= 0)) return { error: 'Sản phẩm vật lý đã hết tồn kho.' };
+    var order = { id: editing.item.id, code: editing.item.code, customer_id: cid, product_id: pid, amount: amount, status: status };
+    if (API) return { done: function () { api('upsert-order', { order: order }).then(function (j) { if (!j.ok) alert(j.error); refresh(); }); } };
+    var isNew = !order.id;
+    var prev = isNew ? null : editing.item.status;
+    if (!isNew) {
+      Object.assign(editing.item, order);
+      if (status === 'success' && prev !== 'success' && prod.type === 'physical') prod.stock -= 1;
+      if (status !== 'success' && prev === 'success' && prod.type === 'physical') prod.stock += 1;
+      editing.item.paid_at = status === 'success' ? today() : null;
+    } else {
+      order.id = nextId(data.orders); order.code = 'WN' + Date.now().toString().slice(-6);
+      order.created_at = today(); order.paid_at = status === 'success' ? today() : null;
+      data.orders.push(order);
+      if (status === 'success' && prod.type === 'physical') prod.stock -= 1;
+    }
+    return { done: saveLocal };
+  }
+  document.getElementById('add-order').onclick = function () {
+    if (!data.customers.length || !data.products.length) { alert('Cần có ít nhất 1 khách hàng và 1 sản phẩm trước.'); return; }
+    editing = { kind: 'o', item: {} };
+    var first = data.products[0];
+    openModal('Thêm đơn hàng', orderForm({ product_id: first.id, amount: first.price, status: 'pending' }), readOrder);
+  };
+
+  /* ---------- xu ly bang ---------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target, id;
+    if (t.dataset.editP) { var p = data.products.filter(function (x) { return x.id === +t.dataset.editP; })[0]; editing = { kind: 'p', item: p }; openModal('Sửa sản phẩm', productForm(p), readProduct); }
+    if (t.dataset.delP) { id = +t.dataset.delP; if (confirm('Xoá sản phẩm này?')) { if (API) api('delete-product', { id: id }).then(refresh); else { data.products = data.products.filter(function (x) { return x.id !== id; }); saveLocal(); } } }
+    if (t.dataset.editC) { var c = data.customers.filter(function (x) { return x.id === +t.dataset.editC; })[0]; editing = { kind: 'c', item: c }; openModal('Sửa khách hàng', customerForm(c), readCustomer); }
+    if (t.dataset.delC) { id = +t.dataset.delC; if (confirm('Xoá khách hàng này?')) { if (API) api('delete-customer', { id: id }).then(refresh); else { data.customers = data.customers.filter(function (x) { return x.id !== id; }); data.orders = data.orders.filter(function (o) { return o.customer_id !== id; }); saveLocal(); } } }
+    if (t.dataset.delO) { id = +t.dataset.delO; if (confirm('Xoá đơn hàng này?')) { if (API) api('delete-order', { id: id }).then(refresh); else { var o = data.orders.filter(function (x) { return x.id === id; })[0]; var pr = o && data.products.filter(function (x) { return x.id === o.product_id; })[0]; if (o && pr && pr.type === 'physical' && o.status === 'success') pr.stock += 1; data.orders = data.orders.filter(function (x) { return x.id !== id; }); saveLocal(); } } }
+    if (t.dataset.paid) { id = +t.dataset.paid; if (API) { api('confirm-order', { id: id }).then(function (j) { if (!j.ok) alert(j.error); refresh(); }); } else { var ord = data.orders.filter(function (x) { return x.id === id; })[0]; var p2 = data.products.filter(function (x) { return x.id === ord.product_id; })[0]; if (p2 && p2.type === 'physical' && (p2.stock == null || p2.stock <= 0)) { alert('Sản phẩm vật lý đã hết tồn kho.'); return; } ord.status = 'success'; ord.paid_at = today(); if (p2 && p2.type === 'physical') p2.stock -= 1; saveLocal(); } }
+  });
+
+  document.getElementById('load-server').onclick = function () {
+    var b = this; b.disabled = true; b.textContent = 'Đang nạp...';
+    askAdminKey(true);
+    fetchList(false).then(function (j) {
+      if (!j || !j.ok) throw new Error('api');
+      var added = 0;
+      (j.orders || []).forEach(function (o) {
+        if (!data.orders.some(function (x) { return x.code && x.code === o.code; })) { data.orders.push(o); added++; }
+      });
+      (j.customers || []).forEach(function (c) {
+        if (!data.customers.some(function (x) { return x.phone && x.phone === c.phone; })) data.customers.push(c);
+      });
+      localStorage.setItem(KEY, JSON.stringify(data));
+      renderAll();
+      b.textContent = 'Đã nạp ' + added + ' đơn mới';
+      setNote('Đã nạp đơn từ máy chủ. Lưu ý: máy chủ chỉ giữ dữ liệu khi đã cài thư viện (npm install) rồi deploy lại.');
+    }).catch(function () {
+      b.textContent = 'Máy chủ chưa sẵn sàng';
+      setNote('Không gọi được <b>/api/orders</b> — đang dùng dữ liệu lưu trong trình duyệt.');
+    }).then(function () { b.disabled = false; });
+  };
+
+  document.getElementById('export').onclick = function () {
+    data.exported_at = today();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.json'; a.click();
+  };
+
+  load().then(renderAll).catch(function () { setNote('Không tải được dữ liệu.'); });
+})();
+</script>
+</body>
+</html>

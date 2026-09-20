@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Thanh toán — Web Nhanh</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; background: #eef2ff; color: #111827; padding: 28px 16px; }
+  .wrap { max-width: 620px; margin: 0 auto; }
+  .card { background: #fff; border: 2px solid #4f46e5; border-radius: 20px; padding: 24px; box-shadow: 0 12px 34px rgba(79,70,229,.12); }
+  h1 { font-size: 1.35rem; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: .9rem; margin-bottom: 18px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: .88rem; font-weight: 600; margin-bottom: 12px; }
+  input, select { font: inherit; font-size: .95rem; padding: 11px 13px; border: 1.5px solid #d7dbe7; border-radius: 10px; background: #f8f9ff; }
+  input:focus, select:focus { outline: none; border-color: #4f46e5; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  button.primary { width: 100%; background: #4f46e5; color: #fff; border: none; border-radius: 999px; padding: 14px;
+                   font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 6px; }
+  button.primary:hover { background: #4338ca; }
+  button.primary:disabled { background: #a5b4fc; cursor: default; }
+  button.ghost { background: #fff; border: 2px solid #4f46e5; color: #4f46e5; border-radius: 999px; padding: 12px;
+                 font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; margin-top: 10px; }
+  .err { color: #dc2626; font-size: .85rem; margin-top: 8px; min-height: 18px; }
+  .box { margin-top: 18px; padding: 16px; border-radius: 14px; background: #f8f9ff; border: 1px dashed #c7d2fe; display: none; }
+  .box.open { display: block; }
+  .qr { width: 260px; height: 260px; margin: 12px auto; display: block; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; object-fit: contain; }
+  .kv { font-size: .92rem; line-height: 1.7; }
+  .kv b { color: #1e3a8a; }
+  .ok { background: #dcfce7; border-color: #86efac; }
+  .warn { background: #fffbeb; border-color: #fde68a; color: #92400e; font-size: .88rem; }
+  .note { font-size: .82rem; color: #6b7280; margin-top: 14px; }
+
+  /* ===== Điện thoại ===== */
+  @media (max-width: 640px) {
+    body { padding: 16px 12px; }
+    .card { padding: 16px; border-radius: 16px; }
+    .row2 { grid-template-columns: 1fr; gap: 10px; }
+    label { font-size: .85rem; margin-bottom: .8rem; }
+    input, select { font-size: 16px; padding: 12px 12px; }
+    select { width: 100%; }
+    h1 { font-size: 1.45rem; line-height: 1.3; }
+    .qr { width: 100%; max-width: 240px; height: auto; }
+    button.primary { padding: 14px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Thanh toán — Web Nhanh</h1>
+    <p class="sub">Điền thông tin, quét QR chuyển khoản. Đơn tự ghi nhận, tiền vào là tự chuyển “đã thanh toán”.</p>
+
+    <form id="pay-form" novalidate>
+      <label>Họ tên *
+        <input id="f-name" type="text" placeholder="Nhập họ tên" />
+      </label>
+      <div class="row2">
+        <label>Số điện thoại *
+          <input id="f-phone" type="tel" inputmode="tel" placeholder="0901234567" />
+        </label>
+        <label>Email * (nhận email xác nhận đơn)
+          <input id="f-email" type="email" placeholder="ban@gmail.com" />
+        </label>
+      </div>
+      <label>Chọn gói / dịch vụ *
+        <select id="f-prod"></select>
+      </label>
+      <label>Ghi chú (tuỳ chọn)
+        <input id="f-note" type="text" placeholder="VD: quán cà phê ở Quận 5" />
+      </label>
+      <button class="primary" type="submit" id="btn-submit">Tạo đơn &amp; lấy mã QR</button>
+      <div class="err" id="err"></div>
+    </form>
+
+    <div class="box" id="qr-box">
+      <div class="kv">Mã đơn: <b id="o-code"></b> · Số tiền: <b id="o-amount"></b></div>
+      <img class="qr" id="qr-img" alt="QR chuyển khoản" />
+      <div class="kv">Nội dung chuyển khoản: <b id="o-content"></b> <span style="color:#6b7280">(giữ nguyên nội dung này)</span></div>
+      <div class="kv" id="bank-info"></div>
+      <div class="box warn" id="qr-warn" style="display:none; margin-top:12px"></div>
+      <button class="ghost" id="btn-paid">Tôi đã chuyển khoản</button>
+    </div>
+
+    <div class="box ok" id="ok-box">
+      <div class="kv"><b>Cảm ơn anh/chị!</b> Đơn hàng đã được ghi nhận ở trạng thái <b>chờ xác nhận</b>.</div>
+      <div class="kv">Khi tiền vào tài khoản, đơn tự chuyển sang <b>đã thanh toán</b> (qua Sepay) — hoặc em xác nhận tay trong trang quản trị.</div>
+    </div>
+
+    <p class="note" id="mode-note"></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ====== DAN URL GOOGLE APPS SCRIPT VAO DAY ====== */
+  var REMOTE = '';   /* ví dụ: https://script.google.com/macros/s/AKfy.../exec */
+  var API_URL = REMOTE || '/api/orders';
+  var API = !!REMOTE;
+  var KEY = '***';
+  var data = null;
+  var BANK = { bin: '970422', account: '5450012062001', name: 'NGUYEN NGUYEN VY' };
+
+  function setNote(t) { document.getElementById('mode-note').textContent = t; }
+  function vnd(n) { return Number(n || 0).toLocaleString('vi-VN') + 'đ'; }
+
+  /* nap danh muc san pham */
+  function loadLocal() {
+    return fetch('admin/data.json').then(function (r) { return r.json(); }).then(function (j) {
+      data = j;
+      setNote('Đơn được ghi nhận và lưu trong trình duyệt này; QR chuyển khoản hoạt động bình thường.');
+    });
+  }
+
+  function loadProducts() {
+    /* Danh mục nhúng sẵn — không đọc file dữ liệu công khai */
+    data = { products: [
+      { id: 1, name: 'Gói Cơ Bản — website 1 trang', type: 'service', price: 1250000 },
+      { id: 2, name: 'Gói Đầy Đủ — website + đặt hàng', type: 'service', price: 2500000 }
+    ] };
+    setNote('Chọn gói → bấm tạo đơn → quét QR chuyển khoản. Trang này tự kiểm tra và báo ngay khi nhận được tiền.');
+    return Promise.resolve();
+  }
+
+  function fillSelect() {
+    var sel = document.getElementById('f-prod');
+    sel.innerHTML = '';
+    (data.products || []).filter(function (p) { return p.type !== 'physical'; }).forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = p.name + ' — ' + Number(p.price).toLocaleString('vi-VN') + 'đ';
+      sel.appendChild(o);
+    });
+  }
+
+  function localCreate(payload) {
+    var ds = localStorage.getItem(KEY) ? JSON.parse(localStorage.getItem(KEY)) : JSON.parse(JSON.stringify(data));
+    var cust = ds.customers.filter(function (c) { return c.phone === payload.phone; })[0];
+    if (!cust) {
+      cust = { id: Math.max.apply(null, ds.customers.map(function (c) { return c.id; }).concat([0])) + 1,
+               name: payload.name, phone: payload.phone, zalo: payload.phone, note: payload.note,
+               created_at: new Date().toISOString().slice(0, 19) };
+      ds.customers.push(cust);
+    }
+    var code = 'WN' + Date.now().toString().slice(-6);
+    var order = { id: Math.max.apply(null, ds.orders.map(function (o) { return o.id; }).concat([0])) + 1,
+                  code: code, customer_id: cust.id, product_id: payload.productId, amount: payload.amount,
+                  status: 'pending', paid_at: null, created_at: new Date().toISOString().slice(0, 19) };
+    ds.orders.push(order);
+    localStorage.setItem(KEY, JSON.stringify(ds));
+    return { order: order, qr: null };
+  }
+
+  function localQr(code, amount) {
+    if (!BANK.bin || !BANK.account) return null;
+    return 'https://img.vietqr.io/image/' + BANK.bin + '-' + BANK.account + '-compact2.png?amount=' + amount
+      + '&addInfo=' + encodeURIComponent(code) + '&accountName=' + encodeURIComponent(BANK.name || '');
+  }
+
+  var pollTimer = null;
+  function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+  function startPolling(code) {
+    stopPolling();
+    var tries = 0;
+    pollTimer = setInterval(function () {
+      tries++;
+      if (tries > 240) { stopPolling(); return; }   /* ~20 phút */
+      fetch('/api/orders?action=status&code=' + encodeURIComponent(code))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.ok && j.status === 'success') {
+            stopPolling();
+            var ok = document.getElementById('ok-box');
+            ok.querySelector('.kv').innerHTML = '<b>Cảm ơn anh/chị!</b> Hệ thống đã nhận được thanh toán cho đơn <b>' + code + '</b>.';
+            ok.classList.add('open');
+            var btn = document.getElementById('btn-paid');
+            btn.textContent = 'Đã thanh toán xong';
+          }
+        }).catch(function () {});
+    }, 5000);
+  }
+
+  function showOrder(res) {
+    var o = res.order;
+    document.getElementById('o-code').textContent = o.code;
+    document.getElementById('o-amount').textContent = vnd(o.amount);
+    document.getElementById('o-content').textContent = o.code;
+    var bank = res.bank || BANK;
+    var hasBank = bank && (bank.bin || bank.account);
+    document.getElementById('bank-info').innerHTML = hasBank
+      ? ('Chủ tài khoản: <b>' + (bank.name || '') + '</b> · Số TK: <b>' + (bank.account || '') + '</b> · Ngân hàng: <b>' + (bank.bin || '') + '</b>')
+      : '';
+    var img = document.getElementById('qr-img');
+    var url = res.qr || localQr(o.code, o.amount);
+    if (url) {
+      img.src = url;
+      img.style.display = 'block';
+      document.getElementById('qr-warn').style.display = 'none';
+    } else {
+      img.removeAttribute('src');
+      img.style.display = 'none';
+      var w = document.getElementById('qr-warn');
+      w.textContent = 'Chưa cấu hình tài khoản ngân hàng nên chưa hiện được QR. Cần điền BANK_BIN · BANK_ACCOUNT · BANK_NAME (biến môi trường trên Netlify) hoặc biến BANK trong file này.';
+      w.style.display = 'block';
+    }
+    document.getElementById('qr-box').classList.add('open');
+    document.getElementById('ok-box').classList.remove('open');
+    document.getElementById('qr-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!res.local) startPolling(o.code);   /* tự kiểm tra tiền về mỗi 5 giây */
+  }
+
+  document.getElementById('pay-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var err = document.getElementById('err');
+    err.textContent = '';
+    var name = document.getElementById('f-name').value.trim();
+    var phone = document.getElementById('f-phone').value.trim().replace(/[\s.\-]/g, '');
+    var email = document.getElementById('f-email').value.trim();
+    var pid = parseInt(document.getElementById('f-prod').value, 10);
+    var note = document.getElementById('f-note').value.trim();
+
+    if (!name) { err.textContent = 'Bạn vui lòng nhập họ tên.'; return; }
+    if (!/^0\d{8,10}$/.test(phone)) { err.textContent = 'Số điện thoại chưa hợp lệ (VD: 0901234567).'; return; }
+    if (!email) { err.textContent = 'Bạn vui lòng nhập email để em gửi xác nhận đơn.'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Email chưa hợp lệ.'; return; }
+    var prod = (data.products || []).filter(function (p) { return p.id === pid; })[0];
+    if (!prod) { err.textContent = 'Bạn chọn giúp gói/dịch vụ.'; return; }
+
+    var btn = document.getElementById('btn-submit');
+    btn.disabled = true; btn.textContent = 'Đang tạo đơn...';
+
+    var payload = { name: name, phone: phone, email: email, productId: pid, note: note, amount: prod.price };
+
+    function done(res) {
+      btn.disabled = false; btn.textContent = 'Tạo đơn & lấy mã QR';
+      if (!res || !res.order) { err.textContent = (res && res.error) ? res.error : 'Không tạo được đơn, thử lại giúp.'; return; }
+      showOrder(res);
+      if (res.emails && res.emails.enabled && res.emails.sent && res.emails.sent.length) {
+        setNote('Đã tạo đơn và gửi email tới <b>' + email + '</b>. Mở hộp thư (cả mục quảng cáo/spam) để xem nhé.');
+      } else if (res.emails && res.emails.error) {
+        setNote('Đã tạo đơn. Email chưa gửi được: ' + res.emails.error);
+      }
+      /* gui ve hop thu de khong mat lien he */
+      fetch('https://formspree.io/f/mgaezbyr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ name: name, phone: phone, email: email, package: prod.name + ' — ' + res.order.code, note: note, from: 'Checkout Web Nhanh (pending)' })
+      }).catch(function () {});
+    }
+
+    /* Co may chu luu tru (Google Sheets) thi tao don tren may chu -> moi trinh duyet deu thay */
+    /* Luu len MAY CHU (Vercel Blob) -> moi trinh duyet deu thay chung du lieu */
+    fetch(API_URL, { method: 'POST',
+      body: JSON.stringify({ action: 'create-order', customerName: name, phone: phone, email: email, productId: pid, note: note }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) { done(j); return; }
+        if (j && j.error) { done({ error: j.error }); return; }
+        var _local = localCreate(payload); _local.local = true; done(_local);      /* may chu tra ve la -> lui ve luu tai may */
+      })
+      .catch(function () { var _l3 = localCreate(payload); _l3.local = true; done(_l3); });
+  });
+
+  document.getElementById('btn-paid').onclick = function () {
+    document.getElementById('ok-box').classList.add('open');
+    this.textContent = 'Đã ghi nhận — chờ xác nhận';
+    this.disabled = true;
+  };
+
+  loadProducts().then(fillSelect).catch(function () {
+    document.getElementById('err').textContent = 'Không tải được danh sách sản phẩm.';
+  });
+})();
+</script>
+</body>
+</html>

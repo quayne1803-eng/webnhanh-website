@@ -1,0 +1,11 @@
+.env
+*.env.local
+node_modules/
+data.db
+data.db-shm
+data.db-wal
+*.log
+backup-*/
+.DS_Store
+.admin-key
+du-lieu-tu-vercel.json

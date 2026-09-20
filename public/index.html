@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Trang gốc: tự động chuyển tới trang portfolio giới thiệu dịch vụ -->
+  <meta http-equiv="refresh" content="0; url=portfolio/" />
+  <title>Web Nhanh — Website trọn gói cho hộ kinh doanh nhỏ</title>
+</head>
+<body>
+  <p style="font-family: sans-serif; text-align: center; padding: 40px;">
+    Đang chuyển tới <a href="portfolio/">trang giới thiệu dịch vụ</a>…
+  </p>
+<!-- ===== Chatbot tu van 24/7 (Ngay 9) ===== -->
+  <style>
+    :root { --primary: #1c1917; }
+    .chat-fab { position: fixed; right: 16px; bottom: 84px; z-index: 61; width: 56px; height: 56px;
+      border-radius: 50%; border: none; cursor: pointer; background: var(--primary); color: #fff;
+      font-size: 26px; box-shadow: 0 8px 22px rgba(79,70,229,.35); transition: transform .15s ease; }
+    .chat-fab:hover { transform: scale(1.06); }
+    .chat-panel { position: fixed; right: 16px; bottom: 150px; z-index: 62; width: 340px; max-width: calc(100vw - 32px);
+      max-height: 62vh; display: none; flex-direction: column; background: #fff; border: 2px solid var(--primary);
+      border-radius: 18px; box-shadow: 0 18px 50px rgba(17,24,39,.22); overflow: hidden; }
+    .chat-panel.open { display: flex; }
+    .chat-head { background: var(--primary); color: #fff; padding: 12px 14px; font-weight: 700; font-size: .95rem;
+      display: flex; align-items: center; justify-content: space-between; }
+    .chat-head button { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; line-height: 1; }
+    .chat-body { padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #f8f9ff; }
+    .chat-msg { max-width: 86%; padding: 9px 12px; border-radius: 12px; font-size: .9rem; line-height: 1.5; }
+    .chat-msg.bot { background: #fff; border: 1px solid #e8ecf4; color: var(--text); align-self: flex-start; }
+    .chat-msg.me { background: var(--primary); color: #fff; align-self: flex-end; }
+    .chat-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background: #fff; border-top: 1px solid #eef2ff; }
+    .chat-quick button { background: #eef2ff; color: var(--primary-dark); border: 1px solid #dbe1f5;
+      border-radius: 999px; padding: 6px 12px; font-size: .8rem; cursor: pointer; font-family: var(--font); }
+    .chat-quick button:hover { background: #e0e7ff; }
+    .chat-foot { display: flex; gap: 8px; padding: 10px 12px; background: #fff; border-top: 1px solid #eef2ff; }
+    .chat-foot input { flex: 1; font: inherit; font-size: .88rem; padding: 9px 12px; border: 1.5px solid #d7dbe7;
+      border-radius: 10px; background: #f8f9ff; }
+    .chat-foot button { background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 0 14px;
+      font-weight: 600; cursor: pointer; }
+    .chat-cta { display: block; text-align: center; background: #facc15; color: #111827; font-weight: 700;
+      padding: 10px; font-size: .88rem; text-decoration: none; }
+  </style>
+
+  <button class="chat-fab" id="chat-fab" aria-label="Chat tu van">💬</button>
+  <div class="chat-panel" id="chat-panel" role="dialog" aria-label="Chat tu van Web Nhanh">
+    <div class="chat-head">
+      <span>Tư vấn Web Nhanh</span>
+      <button id="chat-close" aria-label="Đóng">✕</button>
+    </div>
+    <div class="chat-body" id="chat-body"></div>
+    <div class="chat-quick">
+      <button data-q="Giá bao nhiêu?">Giá bao nhiêu?</button>
+      <button data-q="Bao lâu có web?">Bao lâu có web?</button>
+      <button data-q="Có đóng phí hàng tháng không?">Có phí tháng không?</button>
+      <button data-q="Có xem trước được không?">Xem mẫu trước</button>
+    </div>
+    <div class="chat-foot">
+      <input id="chat-input" type="text" placeholder="Nhập câu hỏi..." />
+      <button id="chat-send">Gửi</button>
+    </div>
+    <a class="chat-cta" href="#contact" id="chat-cta">Điền form để lại số — em gọi lại</a>
+  </div>
+
+  <script>
+  (function () {
+    var panel = document.getElementById('chat-panel');
+    var body = document.getElementById('chat-body');
+    var fab = document.getElementById('chat-fab');
+    var input = document.getElementById('chat-input');
+    var opened = false;
+
+    var KB = [
+      { k: ['giá', 'gia bao', 'bao nhiêu', 'bao nhieu', 'tiền', 'phí bao'], a: 'Gói Cơ Bản 1 triệu đến 1,5 triệu. Gói Đầy Đủ 2 triệu đến 3 triệu. Giá nói trước, không phát sinh thêm.' },
+      { k: ['bao lâu', 'bao lau', 'mấy ngày', 'may ngay', 'thời gian'], a: 'Gói Cơ Bản 2 ngày. Gói Đầy Đủ 4 ngày. Tính từ lúc đủ hình ảnh với menu.' },
+      { k: ['tháng', 'thang', 'phí tháng', 'thuê bao', 'định kỳ'], a: 'Không có phí hàng tháng. Trả một lần là web của anh chị luôn.' },
+      { k: ['công nghệ', 'cong nghe', 'không biết', 'khong biet', 'rành'], a: 'Anh chị chỉ gửi ba thứ: tên quán, hình ảnh, menu. Còn lại em làm hết. Cần chỉnh gì cứ nhắn.' },
+      { k: ['hình', 'hinh anh', 'menu', 'nội dung', 'noi dung'], a: 'Hình chụp bằng điện thoại cũng được. Menu chưa có thì em làm khung trước, có giá thì đắp vô sau.' },
+      { k: ['mẫu', 'mau', 'xem trước', 'demo', 'tham khảo'], a: 'Em có ba mẫu theo ngành: quán ăn/cà phê, spa/salon, phòng gym. Anh chị ưng cái nào thì làm theo cái đó.' },
+      { k: ['google', 'seo', 'tìm kiếm', 'tim kiem'], a: 'Có. Trang được làm để Google đọc được: tên quán, ngành, địa chỉ, số điện thoại.' },
+      { k: ['cập nhật', 'cap nhat', 'sửa', 'sua', 'đổi giá'], a: 'Em có hướng dẫn để anh chị tự sửa. Không rành thì nhắn Zalo, em sửa cho.' },
+      { k: ['thanh toán', 'thanh toan', 'trả tiền', 'tra tien', 'cọc'], a: 'Em trao đổi rồi chốt. Anh chị để lại số, em gọi lại nói rõ từng bước.' },
+      { k: ['hợp', 'hop', 'phù hợp', 'quán ăn', 'quan an', 'cà phê', 'ca phe', 'cafe', 'spa', 'gym', 'salon', 'quận ', 'quan '], a: 'Hợp. Quán ăn, cà phê, spa, salon, phòng gym đều làm được. Gói Cơ Bản đủ cho quán nhỏ: một trang có menu kèm giá, bản đồ, nút gọi. Cần đặt bàn hoặc đặt món thì lấy Gói Đầy Đủ.' },
+      { k: ['nghĩ thêm', 'nghi them', 'suy nghĩ', 'suy nghi', 'tính sau', 'tinh sau', 'để xem', 'de xem', 'chưa cần', 'chua can'], a: 'Dạ anh/chị cứ từ từ, không cần quyết ngay. Khi nào cần, anh/chị nhắn Zalo 034 975 1745 là em trả lời liền.' },
+      { k: ['chuyển khoản', 'chuyen khoan', 'qr', 'quét mã', 'quet ma'], a: 'Anh/chị vào trang thanh toán, chọn gói rồi quét mã QR. Chuyển xong là đơn tự chuyển sang đã thanh toán, em nhận thông báo ngay.' },
+      { k: ['zalo', 'số', 'so dien thoai', 'liên hệ', 'lien he'], a: 'Zalo em là 034 975 1745. Anh chị nhắn trực tiếp cũng được.' }
+    ];
+
+    function add(text, who) {
+      var d = document.createElement('div');
+      d.className = 'chat-msg ' + who;
+      d.textContent = text;
+      body.appendChild(d);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function answer(q) {
+      var s = (q || '').toLowerCase();
+      for (var i = 0; i < KB.length; i++) {
+        for (var j = 0; j < KB[i].k.length; j++) {
+          if (s.indexOf(KB[i].k[j]) !== -1) return KB[i].a;
+        }
+      }
+      return 'Câu này em cần hỏi thêm mới trả lời chính xác được. Anh chị để lại số ở form bên dưới, em gọi lại trong hôm nay.';
+    }
+
+    function send(q) {
+      if (!q) return;
+      add(q, 'me');
+      input.value = '';
+      setTimeout(function () { add(answer(q), 'bot'); }, 300);
+    }
+
+    fab.addEventListener('click', function () {
+      panel.classList.toggle('open');
+      if (!opened) {
+        opened = true;
+        add('Chào anh chị. Em là Nguyên Vỹ bên Web Nhanh.', 'bot');
+        add('Em làm website cho quán ăn, quán cà phê, spa, salon, phòng gym — 2 ngày là xong.', 'bot');
+        add('Anh chị hỏi gì cứ nhắn, hoặc bấm nút vàng bên dưới để để lại số điện thoại.', 'bot');
+      }
+    });
+    document.getElementById('chat-close').addEventListener('click', function () { panel.classList.remove('open'); });
+    document.getElementById('chat-send').addEventListener('click', function () { send(input.value.trim()); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(input.value.trim()); });
+    document.querySelectorAll('.chat-quick button').forEach(function (b) {
+      b.addEventListener('click', function () { send(b.getAttribute('data-q')); });
+    });
+    document.getElementById('chat-cta').addEventListener('click', function () { panel.classList.remove('open'); });
+  })();
+  </script>
+</body>
+</html>

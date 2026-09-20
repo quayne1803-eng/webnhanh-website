@@ -1,0 +1,19 @@
+{
+  "name": "webnhanh-website",
+  "version": "1.0.0",
+  "description": "Website Web Nhanh + CRM + thanh toan + email tu dong (Express + SQLite)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "export-data": "node scripts/export-from-vercel.js",
+    "import-sql": "node scripts/import-json.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
